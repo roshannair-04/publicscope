@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <polygon points="120,24 216,120 120,216 24,120" fill="none" stroke="#0A0A0A" stroke-width="3.84"></polygon>
+  <polygon points="120,54 186,120 120,186 54,120" fill="none" stroke="#0A0A0A" stroke-width="3.84" transform="rotate(-7 120 120)"></polygon>
+  <polygon points="120,84 156,120 120,156 84,120" fill="#0A0A0A" transform="rotate(6 120 120)"></polygon>
+</svg>

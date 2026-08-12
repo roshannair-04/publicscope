@@ -5,6 +5,7 @@ import { InvestigationSearch } from "@/components/ui/InvestigationSearch";
 import { useInvestigation } from "@/hooks/useInvestigation";
 import { InvestigationTransition } from "@/components/investigation/InvestigationTransition";
 import { InvestigationWorkspace } from "@/components/workspace/InvestigationWorkspace";
+import { MOCK_INVESTIGATION } from "@/data/mock-investigation";
 
 export function Hero() {
   const {
@@ -16,9 +17,14 @@ export function Hero() {
 } = useInvestigation();
 
   if (isComplete) {
+  const investigation = {
+    ...MOCK_INVESTIGATION,
+    query: state.query,
+  };
+
   return (
     <InvestigationWorkspace
-      query={state.query}
+      investigation={investigation}
       onNewInvestigation={reset}
     />
   );

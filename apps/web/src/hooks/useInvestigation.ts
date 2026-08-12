@@ -19,6 +19,7 @@ export function useInvestigation() {
   });
 
   const [isInvestigating, setIsInvestigating] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,6 +40,7 @@ export function useInvestigation() {
     });
 
     setIsInvestigating(false);
+    setIsComplete(false);
   }, [clearTimer]);
 
   const startInvestigation = useCallback(
@@ -58,6 +60,7 @@ export function useInvestigation() {
       });
 
       setIsInvestigating(true);
+      setIsComplete(false);
     },
     [clearTimer, isInvestigating],
   );
@@ -75,13 +78,15 @@ export function useInvestigation() {
 
     if (state.stage === "ready") {
       setState((current) => ({
-        ...current,
-        progress: 100,
-      }));
+            ...current,
+            progress: 100,
+  }));
 
-      setIsInvestigating(false);
-      return;
-    }
+  setIsInvestigating(false);
+  setIsComplete(true);
+
+  return;
+}
 
     timerRef.current = setTimeout(() => {
       const nextStage =
@@ -102,9 +107,10 @@ export function useInvestigation() {
   }, [state.stage, isInvestigating, clearTimer]);
 
   return {
-    state,
-    isInvestigating,
-    startInvestigation,
-    reset,
-  };
+  state,
+  isInvestigating,
+  isComplete,
+  startInvestigation,
+  reset,
+};
 }

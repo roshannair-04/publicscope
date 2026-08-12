@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { AnimatedPlaceholder } from "./AnimatedPlaceholder";
@@ -8,7 +9,14 @@ import {
   LANDING_PLACEHOLDERS,
 } from "@/constants/landing";
 
-export function InvestigationSearch() {
+interface InvestigationSearchProps {
+  onSubmit?: (query: string) => void;
+}
+
+export function InvestigationSearch({
+  onSubmit,
+}: InvestigationSearchProps) {
+
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -56,6 +64,20 @@ export function InvestigationSearch() {
     inputRef.current?.focus();
   }
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      return;
+    }
+
+    onSubmit?.(trimmedQuery);
+  }
+
   return (
     <div className="w-full">
       {/* Search */}
@@ -74,6 +96,7 @@ export function InvestigationSearch() {
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          onKeyDown={handleKeyDown}
           placeholder=""
           aria-label="What are you trying to understand?"
           className="

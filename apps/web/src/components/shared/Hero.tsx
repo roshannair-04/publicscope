@@ -1,12 +1,33 @@
+"use client";
 import { BRAND } from "@/config/branding";
 import { BrandMark } from "./BrandMark";
 import { InvestigationSearch } from "@/components/ui/InvestigationSearch";
+import { useInvestigation } from "@/hooks/useInvestigation";
+import { InvestigationTransition } from "@/components/investigation/InvestigationTransition";
+import { InvestigationWorkspace } from "@/components/workspace/InvestigationWorkspace";
 
 export function Hero() {
+  const {
+  state,
+  isInvestigating,
+  isComplete,
+  startInvestigation,
+  reset,
+} = useInvestigation();
+
+  if (isComplete) {
+  return (
+    <InvestigationWorkspace
+      query={state.query}
+      onNewInvestigation={reset}
+    />
+  );
+}
+
   return (
     <section className="flex min-h-screen items-center justify-center">
       <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-6 text-center">
-        
+
         <BrandMark className="mb-8 h-16 w-16 text-white" />
 
         <h1 className="display text-6xl leading-tight tracking-tight">
@@ -23,8 +44,15 @@ export function Hero() {
         </p>
 
        <div className="mt-12 w-full">
-        <InvestigationSearch />
+        <InvestigationSearch onSubmit={startInvestigation} />
       </div>
+
+      {isInvestigating && (
+        <InvestigationTransition
+          stage={state.stage}
+          query={state.query}
+        />
+      )}
 
       </div>
     </section>

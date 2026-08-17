@@ -39,12 +39,21 @@ export function InvestigationWorkspace({
   const [notes, setNotes] = useState<InvestigationNote[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
   const [pinnedEvidenceIds, setPinnedEvidenceIds] = useState<string[]>([]);
+  const [bookmarkedClaimIds, setBookmarkedClaimIds] = useState<string[]>([]);
 
   const toggleEvidencePin = (sourceId: string) => {
     setPinnedEvidenceIds((current) =>
       current.includes(sourceId)
         ? current.filter((id) => id !== sourceId)
         : [...current, sourceId],
+    );
+  };
+
+  const toggleClaimBookmark = (claimId: string) => {
+    setBookmarkedClaimIds((current) =>
+      current.includes(claimId)
+        ? current.filter((id) => id !== claimId)
+        : [...current, claimId],
     );
   };
 
@@ -176,9 +185,25 @@ export function InvestigationWorkspace({
               </h2>
             </div>
 
-            <span className="text-xs text-zinc-700">
-              {notes.length} {notes.length === 1 ? "note" : "notes"}
-            </span>
+            <div className="flex items-center gap-4 text-xs text-zinc-700">
+              <span>
+                {notes.length} {notes.length === 1 ? "note" : "notes"}
+              </span>
+
+              <span>·</span>
+
+              <span>
+                {pinnedEvidenceIds.length}{" "}
+                {pinnedEvidenceIds.length === 1 ? "pinned" : "pinned"}
+              </span>
+
+              <span>·</span>
+
+              <span>
+                {bookmarkedClaimIds.length}{" "}
+                {bookmarkedClaimIds.length === 1 ? "bookmark" : "bookmarks"}
+              </span>
+            </div>
           </div>
 
           <div className="mt-7 max-w-3xl">
@@ -267,63 +292,74 @@ export function InvestigationWorkspace({
               return (
                 <motion.div
                   key={claim.id}
-                  role="button"
-                  tabIndex={0}
                   layout
-                  onClick={() =>
-                    setSelectedClaimId(isSelected ? null : claim.id)
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setSelectedClaimId(isSelected ? null : claim.id);
-                    }
-                  }}
-                  className={`group cursor-pointer bg-black p-7 text-left transition-colors ${
+                  className={`group bg-black p-7 transition-colors ${
                     isSelected
                       ? "bg-white/[0.02]"
                       : "hover:bg-white/[0.02]"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-zinc-600">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          claim.status === "supported"
-                            ? "bg-[var(--accent)]"
-                            : claim.status === "disputed"
-                              ? "bg-zinc-400"
-                              : "bg-zinc-700"
-                        }`}
-                      />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedClaimId(isSelected ? null : claim.id)
+                    }
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-zinc-600">
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            claim.status === "supported"
+                              ? "bg-[var(--accent)]"
+                              : claim.status === "disputed"
+                                ? "bg-zinc-400"
+                                : "bg-zinc-700"
+                          }`}
+                        />
 
-                      {STATUS_LABELS[claim.status]}
-                    </span>
+                        {STATUS_LABELS[claim.status]}
+                      </span>
 
-                    <span className="text-xs tabular-nums text-zinc-700">
-                      {claim.evidenceScore}% evidence
-                    </span>
-                  </div>
+                      <span className="text-xs tabular-nums text-zinc-700">
+                        {claim.evidenceScore}% evidence
+                      </span>
+                    </div>
 
-                  <h3 className="mt-6 max-w-xl text-lg leading-7 text-zinc-200">
-                    {claim.statement}
-                  </h3>
+                    <h3 className="mt-6 max-w-xl text-lg leading-7 text-zinc-200">
+                      {claim.statement}
+                    </h3>
+
+                    <p className="mt-6 text-xs text-zinc-700 transition-colors group-hover:text-zinc-400">
+                      {isSelected ? "Hide evidence" : "View evidence"}
+                    </p>
+                  </button>
 
                   <div className="mt-6 flex items-center justify-between">
                     <p className="text-xs text-zinc-600">
                       {claim.supportingEvidenceIds.length +
                         claim.challengingEvidenceIds.length}{" "}
-                        {claim.supportingEvidenceIds.length +
+                      {claim.supportingEvidenceIds.length +
                         claim.challengingEvidenceIds.length ===
-                        1
-                          ? "source"
-                          : "sources"}{" "}
-                        connected
+                      1
+                        ? "source"
+                        : "sources"}{" "}
+                      connected
                     </p>
 
-                    <span className="text-xs text-zinc-700 transition-colors group-hover:text-zinc-400">
-                      {isSelected ? "Hide evidence" : "View evidence"}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleClaimBookmark(claim.id)}
+                      className={`text-xs transition-colors ${
+                        bookmarkedClaimIds.includes(claim.id)
+                          ? "text-white"
+                          : "text-zinc-700 hover:text-zinc-400"
+                      }`}
+                    >
+                      {bookmarkedClaimIds.includes(claim.id)
+                        ? "Bookmarked"
+                        : "Bookmark"}
+                    </button>
                   </div>
 
                   <AnimatePresence initial={false}>

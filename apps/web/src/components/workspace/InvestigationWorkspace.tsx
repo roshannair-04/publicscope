@@ -3,7 +3,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import type { ClaimStatus, Investigation } from "@/types/investigation";
+
+import type {
+  ClaimStatus,
+  Investigation,
+  InvestigationNote,
+} from "@/types/investigation";
 
 interface InvestigationWorkspaceProps {
   investigation: Investigation;
@@ -21,16 +26,39 @@ export function InvestigationWorkspace({
   investigation,
   onNewInvestigation,
 }: InvestigationWorkspaceProps) {
-  const {
-  query,
-  subject,
-  summary,
-  claims,
-  sources,
-  timeline,
-} = investigation;
+    const {
+    query,
+    subject,
+    summary,
+    claims,
+    sources,
+    timeline,
+  } = investigation;
 
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [notes, setNotes] = useState<InvestigationNote[]>([]);
+  const [noteDraft, setNoteDraft] = useState("");
+
+  const addNote = () => {
+    const content = noteDraft.trim();
+
+    if (!content) {
+      return;
+    }
+
+    const note: InvestigationNote = {
+      id: crypto.randomUUID(),
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    setNotes((current) => [note, ...current]);
+    setNoteDraft("");
+  };
+
+  const removeNote = (noteId: string) => {
+    setNotes((current) => current.filter((note) => note.id !== noteId));
+  };
 
   const selectedClaim =
     claims.find((claim) => claim.id === selectedClaimId) ?? null;
@@ -63,7 +91,7 @@ export function InvestigationWorkspace({
       <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
         {/* Header */}
         <header className="border-b border-zinc-900 pb-10">
-  <div className="flex items-start justify-between gap-8">
+ <div className="flex items-start justify-between gap-8">
     <div>
       <p className="text-xs uppercase tracking-[0.22em] text-zinc-600">
         Investigation
@@ -124,6 +152,85 @@ export function InvestigationWorkspace({
           <p className="mt-5 max-w-4xl text-xl leading-9 tracking-tight text-zinc-300">
             {summary}
           </p>
+        </section>
+
+        {/* Notes */}
+        <section className="border-b border-zinc-900 py-14">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-zinc-600">
+                Notes
+              </p>
+
+              <h2 className="mt-3 text-2xl font-medium tracking-tight text-white">
+                Your investigation notes
+              </h2>
+            </div>
+
+            <span className="text-xs text-zinc-700">
+              {notes.length} {notes.length === 1 ? "note" : "notes"}
+            </span>
+          </div>
+
+          <div className="mt-7 max-w-3xl">
+            <textarea
+              value={noteDraft}
+              onChange={(event) => setNoteDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  addNote();
+                }
+              }}
+              placeholder="Write something you want to remember..."
+              rows={4}
+              className="w-full resize-none border border-zinc-900 bg-black p-5 text-sm leading-6 text-zinc-300 outline-none transition-colors placeholder:text-zinc-700 focus:border-zinc-700"
+            />
+
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-xs text-zinc-700">
+                ⌘ / Ctrl + Enter to save
+              </p>
+
+              <button
+                type="button"
+                onClick={addNote}
+                disabled={!noteDraft.trim()}
+                className="text-sm text-zinc-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                Add note
+              </button>
+            </div>
+          </div>
+
+          {notes.length > 0 && (
+            <div className="mt-8 max-w-3xl divide-y divide-zinc-900 border-y border-zinc-900">
+              {notes.map((note) => (
+                <article
+                  key={note.id}
+                  className="group flex items-start justify-between gap-6 py-5"
+                >
+                  <div>
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-300">
+                      {note.content}
+                    </p>
+
+                    <time className="mt-2 block text-xs text-zinc-700">
+                      {new Date(note.createdAt).toLocaleString()}
+                    </time>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeNote(note.id)}
+                    className="shrink-0 text-xs text-zinc-700 opacity-0 transition-all hover:text-zinc-400 group-hover:opacity-100"
+                  >
+                    Remove
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Claims */}

@@ -14,7 +14,11 @@ export interface Subject {
   description?: string;
   image?: string;
 }
-
+export interface InvestigationNote {
+  id: string;
+  content: string;
+  createdAt: string;
+}
 export interface InvestigationState {
   query: string;
   stage: InvestigationStage;

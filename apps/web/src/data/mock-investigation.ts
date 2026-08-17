@@ -1,9 +1,18 @@
+
 import type { Investigation } from "@/types/investigation";
 
 export const MOCK_INVESTIGATION: Investigation = {
   id: "investigation-001",
 
   query: "Tesla",
+
+  subject: {
+    id: "subject-tesla",
+    name: "Tesla",
+    type: "organization",
+    description:
+      "An electric vehicle and energy company navigating product expansion, regulatory scrutiny, and shifting public expectations.",
+  },
 
   summary:
     "Tesla is navigating a period of rapid product expansion, regulatory scrutiny, and shifting public expectations. The available evidence suggests that several narratives around the company are being driven by different underlying events rather than a single development.",
@@ -42,7 +51,8 @@ export const MOCK_INVESTIGATION: Investigation = {
         "Tesla is increasing its investment in autonomous driving technology.",
       status: "supported",
       evidenceScore: 86,
-      evidenceIds: ["source-001", "source-003"],
+      supportingEvidenceIds: ["source-001", "source-003"],
+      challengingEvidenceIds: [],
     },
     {
       id: "claim-002",
@@ -50,7 +60,8 @@ export const MOCK_INVESTIGATION: Investigation = {
         "Regulatory scrutiny is creating additional uncertainty around Tesla's autonomous driving strategy.",
       status: "disputed",
       evidenceScore: 61,
-      evidenceIds: ["source-002", "source-003"],
+      supportingEvidenceIds: ["source-003"],
+      challengingEvidenceIds: [],
     },
     {
       id: "claim-003",
@@ -58,9 +69,11 @@ export const MOCK_INVESTIGATION: Investigation = {
         "Public discussion around Tesla is increasingly shaped by expectations about its future products.",
       status: "opinion",
       evidenceScore: 42,
-      evidenceIds: ["source-003"],
+      supportingEvidenceIds: ["source-003"],
+      challengingEvidenceIds: [],
     },
   ],
+  
 
   timeline: [
     {

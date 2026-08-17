@@ -21,17 +21,36 @@ export function InvestigationWorkspace({
   investigation,
   onNewInvestigation,
 }: InvestigationWorkspaceProps) {
-  const { query, summary, claims, sources, timeline } = investigation;
+  const {
+  query,
+  subject,
+  summary,
+  claims,
+  sources,
+  timeline,
+} = investigation;
 
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
   const selectedClaim =
     claims.find((claim) => claim.id === selectedClaimId) ?? null;
 
-  const selectedSources = selectedClaim
-    ? selectedClaim.evidenceIds
+  const supportingSources = selectedClaim
+    ? selectedClaim.supportingEvidenceIds
         .map((id) => sources.find((source) => source.id === id))
-        .filter((source): source is Investigation["sources"][number] => Boolean(source))
+        .filter(
+          (source): source is Investigation["sources"][number] =>
+            Boolean(source),
+        )
+    : [];
+
+  const challengingSources = selectedClaim
+    ? selectedClaim.challengingEvidenceIds
+        .map((id) => sources.find((source) => source.id === id))
+        .filter(
+          (source): source is Investigation["sources"][number] =>
+            Boolean(source),
+        )
     : [];
 
   return (
@@ -43,32 +62,58 @@ export function InvestigationWorkspace({
     >
       <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
         {/* Header */}
-        <header className="border-b border-zinc-900 pb-7">
-          <div className="flex items-start justify-between gap-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-zinc-600">
-                Investigation
-              </p>
+        <header className="border-b border-zinc-900 pb-10">
+  <div className="flex items-start justify-between gap-8">
+    <div>
+      <p className="text-xs uppercase tracking-[0.22em] text-zinc-600">
+        Investigation
+      </p>
 
-              <h1 className="mt-3 text-4xl font-medium tracking-tight text-white">
-                {query}
-              </h1>
-
-              <p className="mt-3 text-sm text-zinc-600">
-                {claims.length} claims · {sources.length} sources ·{" "}
-                {timeline.length} events
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={onNewInvestigation}
-              className="shrink-0 text-sm text-zinc-600 transition-colors hover:text-zinc-200"
-            >
-              New investigation
-            </button>
+      <div className="mt-6 flex items-center gap-5">
+        {subject.image ? (
+          <img
+            src={subject.image}
+            alt=""
+            className="h-14 w-14 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-zinc-800 text-sm uppercase tracking-[0.16em] text-zinc-600">
+            {subject.name.slice(0, 2)}
           </div>
-        </header>
+        )}
+
+        <div>
+          <h1 className="text-4xl font-medium tracking-tight text-white">
+            {subject.name}
+          </h1>
+
+          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-zinc-600">
+            {subject.type}
+          </p>
+        </div>
+      </div>
+
+      {subject.description && (
+        <p className="mt-5 max-w-2xl text-sm leading-6 text-zinc-600">
+          {subject.description}
+        </p>
+      )}
+
+      <p className="mt-4 text-sm text-zinc-700">
+        {claims.length} claims · {sources.length} sources ·{" "}
+        {timeline.length} events
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={onNewInvestigation}
+      className="shrink-0 text-sm text-zinc-600 transition-colors hover:text-zinc-200"
+    >
+      New investigation
+    </button>
+  </div>
+</header>
 
         {/* Short version */}
         <section className="border-b border-zinc-900 py-14">
@@ -113,8 +158,8 @@ export function InvestigationWorkspace({
                   }
                   className={`group bg-black p-7 text-left transition-colors ${
                     isSelected
-                      ? "bg-zinc-[0.035]"
-                      : "hover:bg-zinc-[0.025]"
+                      ? "bg-white/[0.02]"
+                      : "hover:bg-white/[0.02]"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -143,11 +188,14 @@ export function InvestigationWorkspace({
 
                   <div className="mt-6 flex items-center justify-between">
                     <p className="text-xs text-zinc-600">
-                      {claim.evidenceIds.length}{" "}
-                      {claim.evidenceIds.length === 1
-                        ? "source"
-                        : "sources"}{" "}
-                      connected
+                      {claim.supportingEvidenceIds.length +
+                        claim.challengingEvidenceIds.length}{" "}
+                        {claim.supportingEvidenceIds.length +
+                        claim.challengingEvidenceIds.length ===
+                        1
+                          ? "source"
+                          : "sources"}{" "}
+                        connected
                     </p>
 
                     <span className="text-xs text-zinc-700 transition-colors group-hover:text-zinc-400">
@@ -170,34 +218,63 @@ export function InvestigationWorkspace({
                           </p>
 
                           <div className="mt-4 space-y-4">
-                            {claim.evidenceIds.map((sourceId) => {
-                              const source = sources.find(
-                                (item) => item.id === sourceId,
-                              );
+                            {supportingSources.length > 0 && (
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-700">
+                                  Supporting evidence
+                                </p>
 
-                              if (!source) {
-                                return null;
-                              }
+                                <div className="mt-3 space-y-4">
+                                  {supportingSources.map((source) => (
+                                    <div
+                                      key={source.id}
+                                      className="border-l border-[var(--accent)]/40 pl-4"
+                                    >
+                                      <p className="text-sm text-zinc-300">
+                                        {source.title}
+                                      </p>
 
-                              return (
-                                <div
-                                  key={source.id}
-                                  className="border-l border-zinc-800 pl-4"
-                                >
-                                  <p className="text-sm text-zinc-300">
-                                    {source.title}
-                                  </p>
+                                      <p className="mt-1 text-xs text-zinc-600">
+                                        {source.publisher} · {source.publishedAt}
+                                      </p>
 
-                                  <p className="mt-1 text-xs text-zinc-600">
-                                    {source.publisher} · {source.publishedAt}
-                                  </p>
-
-                                  <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
-                                    {source.strength} source
-                                  </p>
+                                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                                        {source.strength} source
+                                      </p>
+                                    </div>
+                                  ))}
                                 </div>
-                              );
-                            })}
+                              </div>
+                            )}
+
+                            {challengingSources.length > 0 && (
+                              <div className="mt-7">
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-700">
+                                  Challenging evidence
+                                </p>
+
+                                <div className="mt-3 space-y-4">
+                                  {challengingSources.map((source) => (
+                                    <div
+                                      key={source.id}
+                                      className="border-l border-zinc-700 pl-4"
+                                    >
+                                      <p className="text-sm text-zinc-300">
+                                        {source.title}
+                                      </p>
+
+                                      <p className="mt-1 text-xs text-zinc-600">
+                                        {source.publisher} · {source.publishedAt}
+                                      </p>
+
+                                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                                        {source.strength} source
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -239,31 +316,77 @@ export function InvestigationWorkspace({
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  {selectedSources.map((source) => (
-                    <a
-                      key={source.id}
-                      href={source.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group block border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
-                    >
-                      <div className="flex items-start justify-between gap-6">
-                        <div>
-                          <p className="text-sm text-zinc-300 transition-colors group-hover:text-white">
-                            {source.title}
-                          </p>
+                  {supportingSources.length > 0 && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-700">
+                        Supporting
+                      </p>
 
-                          <p className="mt-2 text-xs text-zinc-600">
-                            {source.publisher} · {source.publishedAt}
-                          </p>
-                        </div>
+                      <div className="mt-3 space-y-3">
+                        {supportingSources.map((source) => (
+                          <a
+                            key={source.id}
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="group block border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
+                          >
+                            <div className="flex items-start justify-between gap-6">
+                              <div>
+                                <p className="text-sm text-zinc-300 group-hover:text-white">
+                                  {source.title}
+                                </p>
 
-                        <span className="text-xs uppercase tracking-[0.14em] text-zinc-700">
-                          {source.strength}
-                        </span>
+                                <p className="mt-2 text-xs text-zinc-600">
+                                  {source.publisher} · {source.publishedAt}
+                                </p>
+                              </div>
+
+                              <span className="text-xs uppercase tracking-[0.14em] text-zinc-700">
+                                {source.strength}
+                              </span>
+                            </div>
+                          </a>
+                        ))}
                       </div>
-                    </a>
-                  ))}
+                    </div>
+                  )}
+
+                  {challengingSources.length > 0 && (
+                    <div className="mt-8">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-700">
+                        Challenging
+                      </p>
+
+                      <div className="mt-3 space-y-3">
+                        {challengingSources.map((source) => (
+                          <a
+                            key={source.id}
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="group block border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
+                          >
+                            <div className="flex items-start justify-between gap-6">
+                              <div>
+                                <p className="text-sm text-zinc-300 group-hover:text-white">
+                                  {source.title}
+                                </p>
+
+                                <p className="mt-2 text-xs text-zinc-600">
+                                  {source.publisher} · {source.publishedAt}
+                                </p>
+                              </div>
+
+                              <span className="text-xs uppercase tracking-[0.14em] text-zinc-700">
+                                {source.strength}
+                              </span>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.section>

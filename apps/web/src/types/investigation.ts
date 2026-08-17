@@ -1,5 +1,20 @@
 import type { InvestigationStage } from "@/constants/investigation";
 
+export type SubjectType =
+  | "person"
+  | "organization"
+  | "place"
+  | "event"
+  | "topic";
+
+export interface Subject {
+  id: string;
+  name: string;
+  type: SubjectType;
+  description?: string;
+  image?: string;
+}
+
 export interface InvestigationState {
   query: string;
   stage: InvestigationStage;
@@ -31,7 +46,8 @@ export interface Claim {
   statement: string;
   status: ClaimStatus;
   evidenceScore: number;
-  evidenceIds: string[];
+  supportingEvidenceIds: string[];
+  challengingEvidenceIds: string[];
 }
 
 export interface TimelineEvent {
@@ -45,6 +61,7 @@ export interface TimelineEvent {
 export interface Investigation {
   id: string;
   query: string;
+  subject: Subject;
   summary: string;
   claims: Claim[];
   sources: Source[];

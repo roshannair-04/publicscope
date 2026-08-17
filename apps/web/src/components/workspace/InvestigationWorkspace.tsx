@@ -38,6 +38,15 @@ export function InvestigationWorkspace({
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [notes, setNotes] = useState<InvestigationNote[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
+  const [pinnedEvidenceIds, setPinnedEvidenceIds] = useState<string[]>([]);
+
+  const toggleEvidencePin = (sourceId: string) => {
+    setPinnedEvidenceIds((current) =>
+      current.includes(sourceId)
+        ? current.filter((id) => id !== sourceId)
+        : [...current, sourceId],
+    );
+  };
 
   const addNote = () => {
     const content = noteDraft.trim();
@@ -256,14 +265,21 @@ export function InvestigationWorkspace({
               const isSelected = selectedClaimId === claim.id;
 
               return (
-                <motion.button
+                <motion.div
                   key={claim.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   layout
                   onClick={() =>
                     setSelectedClaimId(isSelected ? null : claim.id)
                   }
-                  className={`group bg-black p-7 text-left transition-colors ${
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedClaimId(isSelected ? null : claim.id);
+                    }
+                  }}
+                  className={`group cursor-pointer bg-black p-7 text-left transition-colors ${
                     isSelected
                       ? "bg-white/[0.02]"
                       : "hover:bg-white/[0.02]"
@@ -335,19 +351,38 @@ export function InvestigationWorkspace({
                                   {supportingSources.map((source) => (
                                     <div
                                       key={source.id}
-                                      className="border-l border-[var(--accent)]/40 pl-4"
+                                      className="flex items-start justify-between gap-6 border-l border-[var(--accent)]/40 pl-4"
                                     >
-                                      <p className="text-sm text-zinc-300">
-                                        {source.title}
-                                      </p>
+                                      <div>
+                                        <p className="text-sm text-zinc-300">
+                                          {source.title}
+                                        </p>
 
-                                      <p className="mt-1 text-xs text-zinc-600">
-                                        {source.publisher} · {source.publishedAt}
-                                      </p>
+                                        <p className="mt-1 text-xs text-zinc-600">
+                                          {source.publisher} · {source.publishedAt}
+                                        </p>
 
-                                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
-                                        {source.strength} source
-                                      </p>
+                                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                                          {source.strength} source
+                                        </p>
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          toggleEvidencePin(source.id);
+                                        }}
+                                        className={`shrink-0 text-xs transition-colors ${
+                                          pinnedEvidenceIds.includes(source.id)
+                                            ? "text-white"
+                                            : "text-zinc-700 hover:text-white"
+                                        }`}
+                                      >
+                                        {pinnedEvidenceIds.includes(source.id)
+                                          ? "Pinned"
+                                          : "Pin"}
+                                      </button>
                                     </div>
                                   ))}
                                 </div>
@@ -364,19 +399,38 @@ export function InvestigationWorkspace({
                                   {challengingSources.map((source) => (
                                     <div
                                       key={source.id}
-                                      className="border-l border-zinc-700 pl-4"
+                                      className="flex items-start justify-between gap-6 border-l border-zinc-700 pl-4"
                                     >
-                                      <p className="text-sm text-zinc-300">
-                                        {source.title}
-                                      </p>
+                                      <div>
+                                        <p className="text-sm text-zinc-300">
+                                          {source.title}
+                                        </p>
 
-                                      <p className="mt-1 text-xs text-zinc-600">
-                                        {source.publisher} · {source.publishedAt}
-                                      </p>
+                                        <p className="mt-1 text-xs text-zinc-600">
+                                          {source.publisher} · {source.publishedAt}
+                                        </p>
 
-                                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
-                                        {source.strength} source
-                                      </p>
+                                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+                                          {source.strength} source
+                                        </p>
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          toggleEvidencePin(source.id);
+                                        }}
+                                        className={`shrink-0 text-xs transition-colors ${
+                                          pinnedEvidenceIds.includes(source.id)
+                                            ? "text-white"
+                                            : "text-zinc-700 hover:text-white"
+                                        }`}
+                                      >
+                                        {pinnedEvidenceIds.includes(source.id)
+                                          ? "Pinned"
+                                          : "Pin"}
+                                      </button>
                                     </div>
                                   ))}
                                 </div>
@@ -387,7 +441,7 @@ export function InvestigationWorkspace({
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.button>
+                </motion.div>
               );
             })}
           </div>
@@ -431,18 +485,20 @@ export function InvestigationWorkspace({
 
                       <div className="mt-3 space-y-3">
                         {supportingSources.map((source) => (
-                          <a
+                          <div
                             key={source.id}
-                            href={source.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="group block border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
+                            className="group border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
                           >
                             <div className="flex items-start justify-between gap-6">
                               <div>
-                                <p className="text-sm text-zinc-300 group-hover:text-white">
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm text-zinc-300 transition-colors hover:text-white"
+                                >
                                   {source.title}
-                                </p>
+                                </a>
 
                                 <p className="mt-2 text-xs text-zinc-600">
                                   {source.publisher} · {source.publishedAt}
@@ -453,7 +509,23 @@ export function InvestigationWorkspace({
                                 {source.strength}
                               </span>
                             </div>
-                          </a>
+
+                            <div className="mt-4 flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => toggleEvidencePin(source.id)}
+                                className={`text-xs transition-colors ${
+                                  pinnedEvidenceIds.includes(source.id)
+                                    ? "text-white"
+                                    : "text-zinc-700 hover:text-white"
+                                }`}
+                              >
+                                {pinnedEvidenceIds.includes(source.id)
+                                  ? "Pinned"
+                                  : "Pin"}
+                              </button>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -467,18 +539,20 @@ export function InvestigationWorkspace({
 
                       <div className="mt-3 space-y-3">
                         {challengingSources.map((source) => (
-                          <a
+                          <div
                             key={source.id}
-                            href={source.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="group block border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
+                            className="group border border-zinc-900 p-5 transition-colors hover:border-zinc-700"
                           >
                             <div className="flex items-start justify-between gap-6">
                               <div>
-                                <p className="text-sm text-zinc-300 group-hover:text-white">
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm text-zinc-300 transition-colors hover:text-white"
+                                >
                                   {source.title}
-                                </p>
+                                </a>
 
                                 <p className="mt-2 text-xs text-zinc-600">
                                   {source.publisher} · {source.publishedAt}
@@ -489,7 +563,23 @@ export function InvestigationWorkspace({
                                 {source.strength}
                               </span>
                             </div>
-                          </a>
+
+                            <div className="mt-4 flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => toggleEvidencePin(source.id)}
+                                className={`text-xs transition-colors ${
+                                  pinnedEvidenceIds.includes(source.id)
+                                    ? "text-white"
+                                    : "text-zinc-700 hover:text-white"
+                                }`}
+                              >
+                                {pinnedEvidenceIds.includes(source.id)
+                                  ? "Pinned"
+                                  : "Pin"}
+                              </button>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
